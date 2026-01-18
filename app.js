@@ -7,16 +7,14 @@ function buildTree(data) {
         const li = document.createElement("li");
 
         li.innerHTML = `
-            <a href="javascript:void(0);">
-                <div class="member-view-box">
-                    <div class="member-image">
-                        <img src="notFound.png" alt="Member">
-                        <div class="member-details">
-                            <h3>${name}</h3>
-                        </div>
-                    </div>
+            <div class="member-view-box">
+                <div class="member-image">
+                    <img src="notFound.png">
                 </div>
-            </a>
+                <div class="member-details">
+                    <h3>${name}</h3>
+                </div>
+            </div>
         `;
 
         if (Array.isArray(children) && children.length) {
@@ -24,16 +22,14 @@ function buildTree(data) {
             children.forEach(child => {
                 childUl.innerHTML += `
                     <li>
-                        <a href="javascript:void(0);">
-                            <div class="member-view-box">
-                                <div class="member-image">
-                                    <img src="notFound.png">
-                                    <div class="member-details">
-                                        <h3>${child}</h3>
-                                    </div>
-                                </div>
+                        <div class="member-view-box">
+                            <div class="member-image">
+                                <img src="notFound.png">
                             </div>
-                        </a>
+                            <div class="member-details">
+                                <h3>${child}</h3>
+                            </div>
+                        </div>
                     </li>
                 `;
             });
@@ -49,88 +45,45 @@ function buildTree(data) {
     return ul;
 }
 
-/* ---------- EXPAND / COLLAPSE (CENTER PRESERVED) ---------- */
+/* ---------- EXPAND / COLLAPSE ---------- */
 
 document.addEventListener("click", function (e) {
     const card = e.target.closest(".member-view-box");
     if (!card) return;
 
     const li = card.closest("li");
-    const childUl = li.querySelector(":scope > ul");
-    if (!childUl) return;
+    const directChild = li.querySelector(":scope > ul");
+    if (!directChild) return;
 
-    const container = document.querySelector(".genealogy-scroll");
+    const isCollapsed =
+        directChild.style.display === "none" || !directChild.style.display;
 
-    const prevScrollLeft = container.scrollLeft;
-    const prevScrollTop = container.scrollTop;
-    const prevWidth = container.scrollWidth;
-    const prevHeight = container.scrollHeight;
-
-    // Toggle
-    childUl.style.display =
-        childUl.style.display === "none" ? "flex" : "none";
-
-    // Maintain center
-    requestAnimationFrame(() => {
-        const newWidth = container.scrollWidth;
-        const newHeight = container.scrollHeight;
-
-        container.scrollLeft =
-            prevScrollLeft + (newWidth - prevWidth) / 2;
-        container.scrollTop =
-            prevScrollTop + (newHeight - prevHeight) / 2;
+    // 🔹 Collapse everything under this node
+    li.querySelectorAll("ul").forEach(ul => {
+        ul.style.display = "none";
     });
+
+    // 🔹 Expand ONLY immediate children
+    if (isCollapsed) {
+        directChild.style.display = "block";
+    }
 
     e.stopPropagation();
 });
 
-/* ---------- PINCH + TOUCHPAD ZOOM ---------- */
 
-let scale = 1;
-let lastScale = 1;
-let startDistance = 0;
-let isPinching = false;
+/* ---------- ZOOM (DESKTOP ONLY) ---------- */
 
-const zoomWrapper = document.getElementById("zoom-wrapper");
+if (window.innerWidth > 768) {
+    let scale = 1;
+    const zoomWrapper = document.getElementById("zoom-wrapper");
 
-function getDistance(touches) {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.hypot(dx, dy);
+    zoomWrapper.addEventListener("wheel", (e) => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+
+        scale += e.deltaY < 0 ? 0.1 : -0.1;
+        scale = Math.min(Math.max(scale, 0.5), 3);
+        zoomWrapper.style.transform = `scale(${scale})`;
+    }, { passive: false });
 }
-
-/* Mobile pinch */
-zoomWrapper.addEventListener("touchstart", (e) => {
-    if (e.touches.length === 2) {
-        isPinching = true;
-        startDistance = getDistance(e.touches);
-        lastScale = scale;
-    }
-});
-
-zoomWrapper.addEventListener("touchmove", (e) => {
-    if (!isPinching || e.touches.length !== 2) return;
-
-    e.preventDefault();
-
-    scale = lastScale * (getDistance(e.touches) / startDistance);
-    scale = Math.min(Math.max(scale, 0.4), 3);
-
-    zoomWrapper.style.transform = `scale(${scale})`;
-});
-
-zoomWrapper.addEventListener("touchend", () => {
-    isPinching = false;
-});
-
-/* Laptop touchpad pinch */
-zoomWrapper.addEventListener("wheel", (e) => {
-    if (!e.ctrlKey) return;
-
-    e.preventDefault();
-
-    scale += e.deltaY < 0 ? 0.1 : -0.1;
-    scale = Math.min(Math.max(scale, 0.4), 3);
-
-    zoomWrapper.style.transform = `scale(${scale})`;
-}, { passive: false });
