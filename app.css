@@ -1,4 +1,4 @@
-/* Scroll container */
+/* ================= DESKTOP (DEFAULT) ================= */
 .genealogy-scroll {
     white-space: nowrap;
     overflow: auto;
@@ -8,7 +8,7 @@
 
 /* Zoom wrapper */
 #zoom-wrapper {
-    transform-origin: center center; /* IMPORTANT */
+    transform-origin: center center;
     touch-action: none;
 }
 
@@ -28,7 +28,7 @@
 
 /* LI */
 .genealogy-tree li {
-    list-style-type: none;
+    list-style: none;
     position: relative;
     padding: 20px 5px 0;
     text-align: center;
@@ -52,11 +52,6 @@
     border-left: 2px solid #ccc;
 }
 
-.genealogy-tree li:only-child::before,
-.genealogy-tree li:only-child::after {
-    display: none;
-}
-
 .genealogy-tree ul ul::before {
     content: '';
     position: absolute;
@@ -66,7 +61,7 @@
     height: 20px;
 }
 
-/* Member card */
+/* card */
 .member-view-box {
     padding: 0 15px;
     cursor: pointer;
@@ -76,11 +71,71 @@
     width: 60px;
     height: 60px;
     border-radius: 6px;
-    background: #000;
 }
 
 .member-details h3 {
-    margin: 4px 0 0;
     font-size: 12px;
+    margin-top: 4px;
     white-space: nowrap;
+}
+
+/* ================= MOBILE LAYOUT ================= */
+@media (max-width: 768px) {
+
+    .genealogy-tree ul {
+        display: block;
+        padding-left: 20px;
+        position: relative;
+    }
+
+    .genealogy-tree li {
+        position: relative;
+        padding: 10px 0 10px 20px;
+        text-align: left;
+    }
+
+    /* Vertical line */
+    .genealogy-tree li::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 8px;
+        height: 100%;
+        border-left: 2px solid #ccc;
+        pointer-events: none; /* ✅ IMPORTANT */
+    }
+
+    /* Horizontal connector */
+    .genealogy-tree li::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: 8px;
+        width: 12px;
+        border-top: 2px solid #ccc;
+        pointer-events: none; /* ✅ IMPORTANT */
+    }
+
+    /* Remove line for last child */
+    .genealogy-tree li:last-child::before {
+        height: 20px;
+    }
+
+    /* Root node fix */
+    .genealogy-tree > ul > li::before,
+    .genealogy-tree > ul > li::after {
+        display: none;
+    }
+
+    /* Ensure card always gets touch */
+    .member-view-box {
+        position: relative;
+        z-index: 2; /* ✅ ABOVE LINES */
+        display: inline-block;
+        padding: 8px 12px;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
 }
